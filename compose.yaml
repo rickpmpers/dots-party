@@ -1,7 +1,7 @@
 services:
   dots-game:
     build: .
-    image: dots-party:1.0.0
+    image: dots-party:1.1.0
     container_name: dots-party
     init: true
     restart: unless-stopped

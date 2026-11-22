@@ -1,9 +1,27 @@
 const $ = id => document.getElementById(id);
-let socket, state, myId, roomCode, toastTimer, intentionalExit = false;
+const roomPattern=/^[A-HJ-NP-Z2-9]{6}$/;
+let socket, state, myId, roomCode, toastTimer, resumeOffer, resuming = false, intentionalExit = false;
 const savedName = localStorage.getItem('dots-name') || '';
 $('hostName').value=savedName; $('joinName').value=savedName;
 const params=new URLSearchParams(location.search);
-if (params.has('room')) $('joinCode').value=params.get('room').toUpperCase().slice(0,6);
+const normalizeRoom=value=>String(value||'').trim().toUpperCase().slice(0,6);
+const linkedRoom=normalizeRoom(params.get('room'));
+if (roomPattern.test(linkedRoom)) $('joinCode').value=linkedRoom;
+const readSession=code=>{try{return JSON.parse(localStorage.getItem(`dots-session-${code}`)||'null')}catch{return null}};
+const writeSession=(code,details)=>localStorage.setItem(`dots-session-${code}`,JSON.stringify({...readSession(code),...details,updatedAt:Date.now()}));
+const clearSession=code=>{localStorage.removeItem(`dots-token-${code}`);localStorage.removeItem(`dots-session-${code}`);if(localStorage.getItem('dots-last-room')===code)localStorage.removeItem('dots-last-room')};
+function showResumeOffer(preferredCode) {
+  const code=roomPattern.test(preferredCode)?preferredCode:normalizeRoom(localStorage.getItem('dots-last-room'));
+  const token=roomPattern.test(code)?localStorage.getItem(`dots-token-${code}`):null;
+  if(!token){resumeOffer=null;$('resumeCard').classList.add('hidden');return}
+  const session=readSession(code)||{},name=session.name||savedName||'Player';
+  resumeOffer={code,token,name};
+  $('resumeCode').textContent=code;$('resumeName').textContent=name;
+  $('resumeHint').textContent=session.isHost?'Your host controls and current game are ready on this device.':'Your player, score, and current game are ready on this device.';
+  $('resumeBtn').firstChild.textContent=session.isHost?'Resume as host ':'Rejoin as participant ';
+  $('resumeCard').classList.remove('hidden');
+}
+showResumeOffer(roomPattern.test(linkedRoom)?linkedRoom:null);
 
 function toast(message) {
   $('toast').textContent=message; $('toast').classList.remove('hidden');
@@ -17,16 +35,27 @@ function connect(action, payload={}) {
   socket.addEventListener('open',()=>socket.send(JSON.stringify({action,...payload})));
   socket.addEventListener('message',event=>{
     let msg; try{msg=JSON.parse(event.data)}catch{return}
-    if(msg.event==='error') {toast(msg.message); $('hostBtn').disabled=false; $('joinBtn').disabled=false;return}
+    if(msg.event==='error') {
+      toast(resuming&&/Room not found/.test(msg.message)?'That saved game has expired. Start or join another room.':msg.message);
+      if(resuming&&/Room not found/.test(msg.message)){clearSession(resumeOffer?.code);showResumeOffer(null)}
+      resuming=false;$('resumeBtn').disabled=false;$('hostBtn').disabled=false;$('joinBtn').disabled=false;return
+    }
     if(msg.event==='identity') {
       myId=msg.playerId;roomCode=msg.code;
       localStorage.setItem(`dots-token-${roomCode}`,msg.token);
+      localStorage.setItem('dots-last-room',roomCode);
+      writeSession(roomCode,{token:msg.token,playerId:msg.playerId,name:payload.name||readSession(roomCode)?.name||savedName||'Player'});
       history.replaceState({},'',`/?room=${roomCode}`);
       $('welcome').classList.add('hidden');$('room').classList.remove('hidden');
-      $('hostBtn').disabled=false;$('joinBtn').disabled=false;
+      resuming=false;$('resumeBtn').disabled=false;$('hostBtn').disabled=false;$('joinBtn').disabled=false;
       $('qr').src=`/api/qr?room=${roomCode}&origin=${encodeURIComponent(location.origin)}`;
     }
-    if(msg.event==='state'){state=msg.state;render();}
+    if(msg.event==='state'){
+      state=msg.state;
+      const me=state.players.find(player=>player.id===myId);
+      if(me)writeSession(state.code,{playerId:myId,name:me.name,isHost:state.hostId===myId});
+      render();
+    }
   });
   socket.addEventListener('close',()=>{
     if(intentionalExit) return;
@@ -44,10 +73,16 @@ $('hostBtn').addEventListener('click',()=>{
   const name=$('hostName').value.trim();if(!name)return toast('Enter your name first.');
   localStorage.setItem('dots-name',name);$('hostBtn').disabled=true;connect('create',{name});
 });
+$('resumeBtn').addEventListener('click',()=>{
+  if(!resumeOffer)return;
+  resuming=true;$('resumeBtn').disabled=true;
+  connect('join',{code:resumeOffer.code,token:resumeOffer.token,name:resumeOffer.name});
+});
+$('dismissResumeBtn').addEventListener('click',()=>{$('resumeCard').classList.add('hidden');$('joinName').focus()});
 $('joinBtn').addEventListener('click',join);
 function join(){
   const name=$('joinName').value.trim(),code=$('joinCode').value.trim().toUpperCase();
-  if(!name)return toast('Enter your name first.');if(!/^[A-HJ-NP-Z2-9]{6}$/.test(code))return toast('Enter a valid 6-character code.');
+  if(!name)return toast('Enter your name first.');if(!roomPattern.test(code))return toast('Enter a valid 6-character code.');
   localStorage.setItem('dots-name',name);$('joinBtn').disabled=true;
   connect('join',{name,code,token:localStorage.getItem(`dots-token-${code}`)});
 }
@@ -59,8 +94,9 @@ $('copyBtn').addEventListener('click',async()=>{
 $('startBtn').addEventListener('click',()=>send('start'));
 $('againBtn').addEventListener('click',()=>send('start'));
 $('leaveBtn').addEventListener('click',()=>{
+  const savedRoom=roomCode;
   intentionalExit=true; if(socket)socket.close();roomCode=null;myId=null;state=null;
-  history.replaceState({},'','/');$('room').classList.add('hidden');$('welcome').classList.remove('hidden');
+  history.replaceState({},'','/');$('room').classList.add('hidden');$('welcome').classList.remove('hidden');showResumeOffer(savedRoom);
 });
 
 function render() {

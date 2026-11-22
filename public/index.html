@@ -9,6 +9,10 @@
         <div class="eyebrow"><span class="eyebrow-dot"></span> THE CLASSIC GAME, TOGETHER</div>
         <h1>Little dots.<br><em>Big rivalries.</em></h1>
         <p class="intro">Connect the dots. Complete boxes. Steal the spotlight. Play live with friends, wherever they are.</p>
+        <div id="resumeCard" class="panel resume-card hidden">
+          <div><div class="tiny-label">SAVED GAME · <span id="resumeCode"></span></div><h2>Welcome back, <span id="resumeName"></span></h2><p id="resumeHint">Your place in the game is saved on this device.</p></div>
+          <div class="resume-actions"><button id="resumeBtn" class="button primary">Resume existing game <span>→</span></button><button id="dismissResumeBtn" class="text-button">Use a different room</button></div>
+        </div>
         <div class="welcome-grid">
           <div class="panel action-panel"><div class="panel-icon">✦</div><h2>Start a game</h2><p>Be the host. Invite up to 9 friends.</p><label for="hostName">YOUR NAME</label><input id="hostName" maxlength="18" placeholder="What should we call you?" autocomplete="nickname"><button id="hostBtn" class="button primary">Host a room <span>→</span></button></div>
           <div class="panel action-panel"><div class="panel-icon secondary-icon">↗</div><h2>Join the fun</h2><p>Got a room code? You're in.</p><label for="joinName">YOUR NAME</label><input id="joinName" maxlength="18" placeholder="Your player name" autocomplete="nickname"><label for="joinCode">6-CHARACTER ROOM CODE</label><input id="joinCode" maxlength="6" placeholder="ABC123" autocapitalize="characters" autocomplete="off" spellcheck="false" class="code-input"><button id="joinBtn" class="button outline">Join room <span>→</span></button></div>

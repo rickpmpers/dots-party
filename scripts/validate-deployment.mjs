@@ -71,6 +71,22 @@ try {
   assert.equal(state.board.horizontal[0][0], hostIdentity.playerId);
   assert.equal(state.turnId, identities[1].playerId);
 
+  const returningHost = await connect();
+  const returningHostState = nextEvent(returningHost, 'state');
+  const hostAgain = await sendAndWait(returningHost, { action: 'join', code: hostIdentity.code, token: hostIdentity.token, name: 'Ignored' }, 'identity');
+  assert.equal(hostAgain.playerId, hostIdentity.playerId);
+  const { state: hostResumedState } = await returningHostState;
+  assert.equal(hostResumedState.hostId, hostIdentity.playerId);
+  assert.equal(hostResumedState.board.horizontal[0][0], hostIdentity.playerId);
+
+  const returningParticipant = await connect();
+  const returningParticipantState = nextEvent(returningParticipant, 'state');
+  const participantAgain = await sendAndWait(returningParticipant, { action: 'join', code: hostIdentity.code, token: identities[1].token, name: 'Ignored' }, 'identity');
+  assert.equal(participantAgain.playerId, identities[1].playerId);
+  const { state: participantResumedState } = await returningParticipantState;
+  assert.equal(participantResumedState.players.length, 10);
+  assert.equal(participantResumedState.status, 'playing');
+
   console.log(JSON.stringify({
     url: baseUrl,
     https: true,
@@ -79,6 +95,8 @@ try {
     qrJoinUrl: `${baseUrl}/?room=${hostIdentity.code}`,
     synchronizedPlayers: state.players.length,
     capacityLimitVerified: true,
+    hostResumeVerified: true,
+    participantResumeVerified: true,
   }, null, 2));
 } finally {
   for (const socket of clients) socket.close();

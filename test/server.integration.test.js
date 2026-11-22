@@ -59,10 +59,45 @@ test('serves secure headers and a room QR code', async () => {
   assert.equal(page.status, 200);
   assert.equal(page.headers.get('x-frame-options'), 'DENY');
   assert.match(page.headers.get('content-security-policy'), /connect-src/);
+  assert.match(await page.text(), /id="resumeCard"/);
   const qr = await fetch(`${origin}/api/qr?room=ABC234`);
   assert.equal(qr.status, 200);
   assert.match(qr.headers.get('content-type'), /image\/svg\+xml/);
   assert.match(await qr.text(), /^<svg/);
+});
+
+test('host and participant reconnect with the same identity and game state', async t => {
+  const clients = [];
+  t.after(() => clients.forEach(socket => socket.close()));
+  const host = await openClient(); clients.push(host);
+  const hostIdentity = await sendAndWait(host, { action: 'create', name: 'Returning Host' }, 'identity');
+  const participant = await openClient(); clients.push(participant);
+  const participantJoined = nextEvent(participant, 'state');
+  const participantIdentity = await sendAndWait(participant, { action: 'join', code: hostIdentity.code, name: 'Returning Player' }, 'identity');
+  await participantJoined;
+
+  const started = nextEvent(participant, 'state');
+  host.send(JSON.stringify({ action: 'start' }));
+  const { state: playingState } = await started;
+  assert.equal(playingState.status, 'playing');
+
+  const returningHost = await openClient(); clients.push(returningHost);
+  const hostState = nextEvent(returningHost, 'state');
+  const hostAgain = await sendAndWait(returningHost, { action: 'join', code: hostIdentity.code, token: hostIdentity.token, name: 'Ignored' }, 'identity');
+  assert.equal(hostAgain.playerId, hostIdentity.playerId);
+  const { state: resumedByHost } = await hostState;
+  assert.equal(resumedByHost.hostId, hostIdentity.playerId);
+  assert.equal(resumedByHost.status, 'playing');
+  assert.equal(resumedByHost.players.length, 2);
+
+  const returningParticipant = await openClient(); clients.push(returningParticipant);
+  const participantState = nextEvent(returningParticipant, 'state');
+  const participantAgain = await sendAndWait(returningParticipant, { action: 'join', code: hostIdentity.code, token: participantIdentity.token, name: 'Ignored' }, 'identity');
+  assert.equal(participantAgain.playerId, participantIdentity.playerId);
+  const { state: resumedByParticipant } = await participantState;
+  assert.equal(resumedByParticipant.hostId, hostIdentity.playerId);
+  assert.equal(resumedByParticipant.status, 'playing');
+  assert.equal(resumedByParticipant.players.length, 2);
 });
 
 test('synchronizes a 10-player match and rejects player 11', async t => {

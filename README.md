@@ -2,6 +2,8 @@
 
 A mobile-first, browser-based multiplayer **Dots and Boxes** game. One player hosts a room, up to **10 total players (host + 9 friends)** join using a six-character code or QR code, and moves update live over WebSockets.
 
+Hosts and participants can refresh or reopen the site and use the saved-game card to return with the same identity, role, score, and game state. The last room is remembered on that browser even when the room query parameter is missing.
+
 ## Get started locally
 
 Requires Node.js 20+.
@@ -82,11 +84,12 @@ CPU/memory/PID limits, and restarts automatically unless deliberately stopped.
 
 ### Verified deployment state (2026-11-22)
 
-- Unit and integration tests: 6/6 passing.
+- Unit and integration tests: 7/7 passing, including host and participant reconnection.
 - Public HTTPS: HTTP 200 with a valid `*.selfserved.ai` certificate.
 - WebSocket: public `wss://` create/join/start/move flow passed through Cloudflare.
 - Capacity: 10 synchronized clients passed; player 11 was rejected as expected.
 - QR: generated SVG matched the expected public join URL byte-for-byte.
+- Refresh recovery: browser-tested “Resume as host” and “Rejoin as participant” paths restore the same identities without duplicate players.
 - Recovery: terminating the Node process incremented the container restart count and returned to healthy automatically.
 - Cloudflare: proxied tunnel CNAME plus hostname-specific public Access bypass; the wildcard Access protection for other services remains unchanged.
 
