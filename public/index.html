@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101c2d"><title>Dots Party · Connect. Claim. Win.</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <div class="shell">
+    <header class="topbar"><div class="brand"><div class="brand-icon"><span>•</span>─<span>•</span><br><span>•</span>─<span>•</span></div><span>dots<span class="brand-light">party</span></span></div><span class="top-tag">THE MULTIPLAYER DOTS GAME</span></header>
+    <main>
+      <section id="welcome" class="welcome">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> THE CLASSIC GAME, TOGETHER</div>
+        <h1>Little dots.<br><em>Big rivalries.</em></h1>
+        <p class="intro">Connect the dots. Complete boxes. Steal the spotlight. Play live with friends, wherever they are.</p>
+        <div class="welcome-grid">
+          <div class="panel action-panel"><div class="panel-icon">✦</div><h2>Start a game</h2><p>Be the host. Invite up to 9 friends.</p><label for="hostName">YOUR NAME</label><input id="hostName" maxlength="18" placeholder="What should we call you?" autocomplete="nickname"><button id="hostBtn" class="button primary">Host a room <span>→</span></button></div>
+          <div class="panel action-panel"><div class="panel-icon secondary-icon">↗</div><h2>Join the fun</h2><p>Got a room code? You're in.</p><label for="joinName">YOUR NAME</label><input id="joinName" maxlength="18" placeholder="Your player name" autocomplete="nickname"><label for="joinCode">6-CHARACTER ROOM CODE</label><input id="joinCode" maxlength="6" placeholder="ABC123" autocapitalize="characters" autocomplete="off" spellcheck="false" class="code-input"><button id="joinBtn" class="button outline">Join room <span>→</span></button></div>
+        </div><div class="how"><span>01 · HOST</span><span class="separator">—</span><span>02 · SHARE CODE</span><span class="separator">—</span><span>03 · PLAY</span></div>
+      </section>
+      <section id="room" class="room hidden">
+        <div class="room-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> <span id="phase">WAITING ROOM</span></div><h1 id="roomTitle">Your game room</h1><p id="roomSubtitle" class="subtle">Invite your friends to join.</p></div><button id="leaveBtn" class="text-button">Leave room ↗</button></div>
+        <div id="lobbyArea" class="lobby-grid"><div class="panel invite-panel"><div class="tiny-label">YOUR ROOM CODE</div><div id="displayCode" class="room-code">ABCDEF</div><button id="copyBtn" class="button primary">Copy invite link <span>↗</span></button><div class="share-qr"><img id="qr" alt="QR code for joining this game"><div><strong>Scan to join</strong><p>Open your phone camera and scan this QR code to enter the room.</p></div></div></div><div class="panel players-panel"><div class="flex-head"><h2>Players</h2><span id="count" class="count-pill">1 / 10</span></div><div id="lobbyPlayers" class="player-list"></div><div class="bottom-group"><p id="hostHint" class="subtle">Waiting for more players…</p><button id="startBtn" class="button primary" disabled>Start game <span>→</span></button></div></div></div>
+        <div id="playArea" class="play-grid hidden"><div class="board-card panel"><div class="board-head"><div><div class="tiny-label">CURRENT TURN</div><h2 id="turnLabel">Get ready</h2></div><span id="moveNotice" class="turn-notice">Complete a box for another turn</span></div><div id="board" class="board" aria-label="Dots and Boxes game board"></div><div id="endBanner" class="end-banner hidden"></div></div><aside class="panel scoreboard"><div class="flex-head"><h2>Scoreboard</h2><span id="scoreRound" class="count-pill">LIVE</span></div><div id="scores" class="player-list"></div><div class="rules"><strong>How to play</strong><p>Take turns connecting two adjacent dots. Close the fourth side of a box to claim it and play again. Most boxes wins.</p></div><button id="againBtn" class="button primary hidden">Play again <span>↻</span></button></aside></div>
+      </section>
+    </main><footer>MADE FOR FRIENDS, FAMILY & FRIENDLY COMPETITION <span>·</span> UP TO 10 PLAYERS</footer>
+  </div><div id="toast" role="status" aria-live="polite" class="toast hidden"></div><script type="module" src="/app.js"></script>
+</body></html>

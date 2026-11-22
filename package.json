@@ -1,0 +1,10 @@
+{
+  "name": "dots-party",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time mobile Dots and Boxes for up to 10 players",
+  "type": "module",
+  "scripts": {"start": "node server.js", "dev": "node --watch server.js", "test": "node --test --test-concurrency=1", "validate:deployment": "node scripts/validate-deployment.mjs"},
+  "engines": {"node": ">=20"},
+  "dependencies": {"qrcode": "^1.5.4", "ws": "^8.18.3"}
+}

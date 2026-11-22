@@ -1,0 +1,27 @@
+services:
+  dots-game:
+    build: .
+    image: dots-party:1.0.0
+    container_name: dots-party
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8821}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://mm-game.selfserved.ai}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://mm-game.selfserved.ai}
+      TRUST_PROXY: "1"
+      MAX_ROOMS: "1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    pids_limit: 100
+    mem_limit: 256m
+    cpus: 1.0
+    stop_grace_period: 15s
